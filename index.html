@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bảng Xếp Hạng Realtime - Tân Binh Toàn Năng 2025</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
   <style>
     * {
       margin: 0;
@@ -55,10 +56,47 @@
       font-weight: bold;
     }
     
-    .countdown {
-      font-size: 0.85em;
-      margin-top: 5px;
-      opacity: 0.8;
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid white;
+      padding: 12px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: white;
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+      border-color: white;
     }
     
     .leaderboard {
@@ -176,6 +214,15 @@
       color: #ADD8E6;
     }
     
+    .gap {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    
+    .rank-1 .gap, .rank-2 .gap, .rank-3 .gap {
+      color: #ffcccc;
+    }
+    
     .points-container {
       text-align: right;
       min-width: 150px;
@@ -213,36 +260,33 @@
       margin-bottom: 20px;
     }
     
+    .success {
+      background: #51cf66;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      margin-bottom: 20px;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
     .refresh-info {
       text-align: center;
       color: white;
       margin-top: 20px;
       font-size: 0.9em;
       opacity: 0.9;
-    }
-    
-    .manual-refresh {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: 2px solid white;
-      padding: 12px 30px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 1em;
-      margin: 20px auto;
-      display: block;
-      transition: all 0.3s ease;
-      font-weight: bold;
-    }
-    
-    .manual-refresh:hover {
-      background: rgba(255,255,255,0.3);
-      transform: scale(1.05);
-    }
-    
-    .manual-refresh:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
     }
     
     @keyframes pulse {
@@ -267,6 +311,20 @@
       border-radius: 50%;
       margin-right: 5px;
       animation: blink 2s ease-in-out infinite;
+    }
+    
+    .csv-info {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+    
+    .csv-info strong {
+      color: #90EE90;
     }
     
     @media (max-width: 768px) {
@@ -310,6 +368,15 @@
       .status-bar {
         font-size: 0.8em;
       }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
     }
   </style>
 </head>
@@ -320,7 +387,7 @@
       <div class="status-bar">
         <div class="status-item">
           <span class="live-indicator"></span>
-          <span class="status-online">LIVE</span>
+          <span class="status-online">REALTIME</span>
         </div>
         <div class="status-item" id="lastUpdate">Đang tải...</div>
         <div class="status-item" id="countdown">--:--</div>
@@ -328,30 +395,53 @@
       </div>
     </div>
     
-    <button class="manual-refresh" id="refreshBtn" onclick="manualRefresh()">
-      🔄 Cập nhật ngay
-    </button>
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="refreshBtn" onclick="manualRefresh()">
+        <span>🔄</span>
+        <span>Cập nhật ngay</span>
+      </button>
+      <button class="btn btn-success" onclick="downloadCSV()">
+        <span>📥</span>
+        <span>Tải CSV hiện tại</span>
+      </button>
+      <button class="btn btn-success" onclick="downloadAllHistory()">
+        <span>📊</span>
+        <span>Tải lịch sử CSV</span>
+      </button>
+    </div>
     
-    <div id="errorMessage"></div>
-    <div id="leaderboard" class="loading">Đang tải dữ liệu...</div>
+    <div id="messageContainer"></div>
+    <div id="leaderboard" class="loading">
+      <div style="font-size: 3em;">⏳</div>
+      <div>Đang tải dữ liệu...</div>
+      <div style="margin-top: 10px; opacity: 0.7;">Vui lòng đợi trong giây lát</div>
+    </div>
     
     <div class="refresh-info">
-      ⚡ Tự động cập nhật mỗi 15 phút trên TẤT CẢ trình duyệt | 📊 Hiển thị tốc độ tăng điểm của Top 5
+      ⚡ Tự động cập nhật mỗi <strong>1 PHÚT</strong> | 📊 Hiển thị Gap + Tốc độ tăng điểm Top 5 | 💾 Tự động lưu CSV
+    </div>
+    
+    <div class="csv-info" id="csvInfo">
+      📁 CSV tự động lưu: <strong id="csvCount">0</strong> lần | 
+      🕐 Lần cuối: <strong id="lastCsvTime">Chưa có</strong>
     </div>
   </div>
   
   <script>
     const API_URL = 'https://eventista-platform-api.1vote.vn/v1/internal/tenants/lsvBBR/products?eventId=EVENT_IZDYX';
-    const UPDATE_INTERVAL = 15 * 60 * 1000; // 15 phút
+    const UPDATE_INTERVAL = 1 * 60 * 1000; // 1 PHÚT
     const STORAGE_KEY = 'leaderboard_data';
     const STORAGE_TIME_KEY = 'leaderboard_time';
+    const CSV_HISTORY_KEY = 'csv_history';
+    const CSV_COUNT_KEY = 'csv_count';
     
     let previousData = null;
     let lastUpdateTime = null;
     let countdownInterval = null;
     let updateTimer = null;
+    let csvHistory = [];
+    let csvCount = 0;
     
-    // CORS Proxies
     const CORS_PROXIES = [
       'https://api.allorigins.win/raw?url=',
       'https://corsproxy.io/?',
@@ -359,29 +449,18 @@
     ];
     let currentProxyIndex = 0;
     
-    // Khởi tạo
     function init() {
-      // Load dữ liệu từ localStorage (nếu có)
       loadFromStorage();
-      
-      // Cập nhật ngay lập tức
+      loadCSVHistory();
       updateLeaderboard();
-      
-      // Tự động cập nhật mỗi 15 phút
       updateTimer = setInterval(updateLeaderboard, UPDATE_INTERVAL);
-      
-      // Đếm số người đang xem (giả lập)
       updateViewerCount();
       setInterval(updateViewerCount, 30000);
-      
-      // Lắng nghe sự kiện tab được focus lại
       document.addEventListener('visibilitychange', handleVisibilityChange);
     }
     
-    // Xử lý khi user quay lại tab
     function handleVisibilityChange() {
       if (!document.hidden) {
-        // Kiểm tra xem đã quá lâu chưa update chưa
         const now = Date.now();
         if (lastUpdateTime && (now - lastUpdateTime) > UPDATE_INTERVAL) {
           console.log('Tab được focus lại, cập nhật dữ liệu...');
@@ -390,7 +469,6 @@
       }
     }
     
-    // Lưu vào localStorage
     function saveToStorage(data) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -400,7 +478,6 @@
       }
     }
     
-    // Load từ localStorage
     function loadFromStorage() {
       try {
         const savedData = localStorage.getItem(STORAGE_KEY);
@@ -409,8 +486,6 @@
         if (savedData && savedTime) {
           previousData = JSON.parse(savedData);
           lastUpdateTime = parseInt(savedTime);
-          
-          // Hiển thị dữ liệu cũ ngay lập tức
           renderLeaderboard(previousData);
           startCountdown();
         }
@@ -419,9 +494,184 @@
       }
     }
     
-    // Cập nhật số người xem (giả lập)
+    function loadCSVHistory() {
+      try {
+        const saved = localStorage.getItem(CSV_HISTORY_KEY);
+        const count = localStorage.getItem(CSV_COUNT_KEY);
+        
+        if (saved) {
+          csvHistory = JSON.parse(saved);
+        }
+        if (count) {
+          csvCount = parseInt(count);
+          updateCSVInfo();
+        }
+      } catch (e) {
+        console.error('Không thể load CSV history:', e);
+      }
+    }
+    
+    function saveCSVHistory() {
+      try {
+        if (csvHistory.length > 100) {
+          csvHistory = csvHistory.slice(-100);
+        }
+        localStorage.setItem(CSV_HISTORY_KEY, JSON.stringify(csvHistory));
+        localStorage.setItem(CSV_COUNT_KEY, csvCount.toString());
+        updateCSVInfo();
+      } catch (e) {
+        console.error('Không thể lưu CSV history:', e);
+      }
+    }
+    
+    function updateCSVInfo() {
+      document.getElementById('csvCount').textContent = csvCount;
+      if (csvHistory.length > 0) {
+        const lastTime = new Date(csvHistory[csvHistory.length - 1].timestamp);
+        document.getElementById('lastCsvTime').textContent = lastTime.toLocaleString('vi-VN');
+      }
+    }
+    
+    function convertToCSV(products) {
+      const sorted = products.sort((a, b) => b.points - a.points);
+      
+      let csv = '\uFEFF';
+      csv += 'Hạng,ID,Tên,Điểm,Gap với hạng trước,% so với #1,Avatar URL,Thời gian\n';
+      
+      const timestamp = new Date().toLocaleString('vi-VN');
+      const top1Points = sorted[0].points;
+      
+      sorted.forEach((contestant, index) => {
+        const rank = index + 1;
+        let gap = '';
+        let percent = '';
+        
+        if (rank === 1) {
+          gap = '---';
+          percent = '100%';
+        } else {
+          const gapValue = sorted[index - 1].points - contestant.points;
+          gap = `-${gapValue}`;
+          const percentDiff = ((top1Points - contestant.points) / top1Points) * 100;
+          percent = `-${percentDiff.toFixed(2)}%`;
+        }
+        
+        csv += `${rank},"${contestant.id}","${contestant.name}",${contestant.points},"${gap}","${percent}","${contestant.avatar}","${timestamp}"\n`;
+      });
+      
+      return csv;
+    }
+    
+    function downloadCSV() {
+      if (!previousData || previousData.length === 0) {
+        showMessage('Chưa có dữ liệu để tải!', 'error');
+        return;
+      }
+      
+      const csv = convertToCSV(previousData);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `leaderboard_${timestamp}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showMessage('✅ Đã tải CSV thành công!', 'success');
+    }
+    
+    function autoSaveCSV(products) {
+      try {
+        const timestamp = Date.now();
+        const sorted = products.sort((a, b) => b.points - a.points);
+        const top1Points = sorted[0].points;
+        
+        const csvData = {
+          timestamp: timestamp,
+          data: sorted.map((p, index) => {
+            const rank = index + 1;
+            let gap = null;
+            let percent = 100;
+            
+            if (rank > 1) {
+              gap = sorted[index - 1].points - p.points;
+              percent = ((top1Points - p.points) / top1Points) * 100;
+            }
+            
+            return {
+              rank: rank,
+              id: p.id,
+              name: p.name,
+              points: p.points,
+              gap: gap,
+              percent: percent,
+              avatar: p.avatar
+            };
+          })
+        };
+        
+        csvHistory.push(csvData);
+        csvCount++;
+        saveCSVHistory();
+        
+        console.log('✅ Đã tự động lưu CSV lần thứ', csvCount);
+      } catch (e) {
+        console.error('Lỗi khi tự động lưu CSV:', e);
+      }
+    }
+    
+    function downloadAllHistory() {
+      if (csvHistory.length === 0) {
+        showMessage('Chưa có lịch sử CSV!', 'error');
+        return;
+      }
+      
+      let csv = '\uFEFF';
+      csv += 'Thời gian,Hạng,ID,Tên,Điểm,Gap với hạng trước,% so với #1,Avatar URL\n';
+      
+      csvHistory.forEach(record => {
+        const time = new Date(record.timestamp).toLocaleString('vi-VN');
+        record.data.forEach(contestant => {
+          const gap = contestant.gap !== null ? `-${contestant.gap}` : '---';
+          const percent = contestant.rank === 1 ? '100%' : `-${contestant.percent.toFixed(2)}%`;
+          csv += `"${time}",${contestant.rank},"${contestant.id}","${contestant.name}",${contestant.points},"${gap}","${percent}","${contestant.avatar}"\n`;
+        });
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `leaderboard_history_${timestamp}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showMessage(`✅ Đã tải lịch sử ${csvHistory.length} lần cập nhật!`, 'success');
+    }
+    
+    function showMessage(message, type = 'success') {
+      const container = document.getElementById('messageContainer');
+      const className = type === 'error' ? 'error' : 'success';
+      
+      container.innerHTML = `<div class="${className}">${message}</div>`;
+      
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 3000);
+    }
+    
     function updateViewerCount() {
-      const count = Math.floor(Math.random() * 50) + 100; // 100-150 người
+      const count = Math.floor(Math.random() * 50) + 100;
       document.getElementById('viewerCount').textContent = `👥 ${count} đang xem`;
     }
     
@@ -465,7 +715,6 @@
     }
     
     async function fetchData() {
-      // Thử với nhiều CORS proxy
       for (let i = 0; i < CORS_PROXIES.length; i++) {
         try {
           const proxy = CORS_PROXIES[currentProxyIndex];
@@ -478,7 +727,7 @@
             headers: {
               'Accept': 'application/json',
             },
-            cache: 'no-cache' // Không dùng cache để luôn lấy dữ liệu mới
+            cache: 'no-cache'
           });
           
           if (!response.ok) {
@@ -498,7 +747,7 @@
           currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
           
           if (i === CORS_PROXIES.length - 1) {
-            showError('Không thể kết nối API. Đang thử lại...');
+            showMessage('Không thể kết nối API. Đang thử lại...', 'error');
             return null;
           }
         }
@@ -507,18 +756,10 @@
       return null;
     }
     
-    function showError(message) {
-      const errorDiv = document.getElementById('errorMessage');
-      errorDiv.innerHTML = `<div class="error">${message}</div>`;
-      setTimeout(() => {
-        errorDiv.innerHTML = '';
-      }, 5000);
-    }
-    
     function calculateStats(currentProducts, previousProducts) {
       if (!previousProducts || !lastUpdateTime) return currentProducts;
       
-      const timeDiff = (Date.now() - lastUpdateTime) / 1000 / 60; // phút
+      const timeDiff = (Date.now() - lastUpdateTime) / 1000 / 60;
       
       return currentProducts.map(current => {
         const previous = previousProducts.find(p => p.id === current.id);
@@ -541,6 +782,7 @@
     function renderLeaderboard(products) {
       const sorted = products.sort((a, b) => b.points - a.points);
       const withStats = calculateStats(sorted, previousData);
+      const top1Points = sorted[0].points;
       
       const leaderboardDiv = document.getElementById('leaderboard');
       leaderboardDiv.className = 'leaderboard';
@@ -552,19 +794,37 @@
         const isTop5 = rank <= 5;
         
         let statsHtml = '';
-        if (isTop5 && contestant.pointsIncrease !== undefined) {
-          statsHtml = `
-            <div class="stats">
+        if (isTop5) {
+          const statItems = [];
+          
+          // Gap với hạng trước
+          if (rank > 1) {
+            const gap = withStats[index - 1].points - contestant.points;
+            statItems.push(`
+              <div class="stat-item">
+                <span>📉</span>
+                <span class="gap">-${formatNumber(gap)} điểm</span>
+              </div>
+            `);
+          }
+          
+          // Tốc độ tăng điểm
+          if (contestant.pointsIncrease !== undefined) {
+            statItems.push(`
               <div class="stat-item">
                 <span>📈</span>
                 <span class="increase">+${formatNumber(contestant.pointsIncrease)}</span>
               </div>
               <div class="stat-item">
                 <span>⚡</span>
-                <span class="speed">${formatNumber(contestant.speed)} điểm/phút</span>
+                <span class="speed">${formatNumber(contestant.speed)} đ/phút</span>
               </div>
-            </div>
-          `;
+            `);
+          }
+          
+          if (statItems.length > 0) {
+            statsHtml = `<div class="stats">${statItems.join('')}</div>`;
+          }
         }
         
         html += `
@@ -595,27 +855,26 @@
       
       leaderboardDiv.classList.add('updating');
       refreshBtn.disabled = true;
-      refreshBtn.textContent = '⏳ Đang cập nhật...';
+      refreshBtn.innerHTML = '<span>⏳</span><span>Đang cập nhật...</span>';
       
       const products = await fetchData();
       
       if (products) {
         renderLeaderboard(products);
-        
-        // Lưu vào localStorage
         saveToStorage(products);
+        autoSaveCSV(products);
         
         previousData = products;
         lastUpdateTime = Date.now();
         startCountdown();
-        document.getElementById('errorMessage').innerHTML = '';
+        document.getElementById('messageContainer').innerHTML = '';
       } else if (previousData) {
         renderLeaderboard(previousData);
       }
       
       leaderboardDiv.classList.remove('updating');
       refreshBtn.disabled = false;
-      refreshBtn.textContent = '🔄 Cập nhật ngay';
+      refreshBtn.innerHTML = '<span>🔄</span><span>Cập nhật ngay</span>';
     }
     
     function manualRefresh() {
@@ -623,7 +882,6 @@
       updateLeaderboard();
     }
     
-    // Khởi động
     init();
   </script>
 </body>
