@@ -56,6 +56,11 @@
       font-weight: bold;
     }
     
+    .status-error {
+      color: #ff6b6b;
+      font-weight: bold;
+    }
+    
     .action-buttons {
       display: flex;
       justify-content: center;
@@ -96,6 +101,11 @@
     
     .btn-success {
       background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+      border-color: white;
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
       border-color: white;
     }
     
@@ -270,6 +280,15 @@
       animation: slideIn 0.3s ease;
     }
     
+    .warning {
+      background: #ffa726;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
     @keyframes slideIn {
       from {
         transform: translateY(-20px);
@@ -313,6 +332,16 @@
       animation: blink 2s ease-in-out infinite;
     }
     
+    .error-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #ff6b6b;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: blink 1s ease-in-out infinite;
+    }
+    
     .csv-info {
       background: rgba(255,255,255,0.15);
       color: white;
@@ -325,6 +354,16 @@
     
     .csv-info strong {
       color: #90EE90;
+    }
+    
+    .retry-info {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: center;
+      font-size: 0.85em;
     }
     
     @media (max-width: 768px) {
@@ -385,7 +424,7 @@
     <div class="header">
       <h1>🏆 Bảng Xếp Hạng Tân Binh Toàn Năng 2025</h1>
       <div class="status-bar">
-        <div class="status-item">
+        <div class="status-item" id="connectionStatus">
           <span class="live-indicator"></span>
           <span class="status-online">REALTIME</span>
         </div>
@@ -408,6 +447,10 @@
         <span>📊</span>
         <span>Tải lịch sử CSV</span>
       </button>
+      <button class="btn btn-warning" onclick="clearAllData()">
+        <span>🗑️</span>
+        <span>Xóa dữ liệu</span>
+      </button>
     </div>
     
     <div id="messageContainer"></div>
@@ -425,11 +468,17 @@
       📁 CSV tự động lưu: <strong id="csvCount">0</strong> lần | 
       🕐 Lần cuối: <strong id="lastCsvTime">Chưa có</strong>
     </div>
+    
+    <div class="retry-info" id="retryInfo" style="display: none;">
+      ⚠️ Đang thử lại kết nối... Lần thử: <strong id="retryCount">0</strong>
+    </div>
   </div>
   
   <script>
     const API_URL = 'https://eventista-platform-api.1vote.vn/v1/internal/tenants/lsvBBR/products?eventId=EVENT_IZDYX';
     const UPDATE_INTERVAL = 1 * 60 * 1000; // 1 PHÚT
+    const RETRY_INTERVAL = 10 * 1000; // 10 giây retry
+    const MAX_RETRIES = 5;
     const STORAGE_KEY = 'leaderboard_data';
     const STORAGE_TIME_KEY = 'leaderboard_time';
     const CSV_HISTORY_KEY = 'csv_history';
@@ -439,31 +488,44 @@
     let lastUpdateTime = null;
     let countdownInterval = null;
     let updateTimer = null;
+    let retryTimer = null;
     let csvHistory = [];
     let csvCount = 0;
+    let retryCount = 0;
+    let isUpdating = false;
+    let lastSuccessfulUpdate = null;
     
+    // CORS Proxies với thứ tự ưu tiên
     const CORS_PROXIES = [
       'https://api.allorigins.win/raw?url=',
       'https://corsproxy.io/?',
-      'https://api.codetabs.com/v1/proxy?quest='
+      'https://api.codetabs.com/v1/proxy?quest=',
+      // Thêm proxy dự phòng
+      'https://cors-anywhere.herokuapp.com/',
     ];
     let currentProxyIndex = 0;
     
     function init() {
+      console.log('🚀 Khởi động ứng dụng...');
       loadFromStorage();
       loadCSVHistory();
       updateLeaderboard();
-      updateTimer = setInterval(updateLeaderboard, UPDATE_INTERVAL);
+      updateTimer = setInterval(scheduleUpdate, UPDATE_INTERVAL);
       updateViewerCount();
       setInterval(updateViewerCount, 30000);
       document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+    
+    function scheduleUpdate() {
+      console.log('⏰ Đến giờ cập nhật tự động...');
+      updateLeaderboard();
     }
     
     function handleVisibilityChange() {
       if (!document.hidden) {
         const now = Date.now();
         if (lastUpdateTime && (now - lastUpdateTime) > UPDATE_INTERVAL) {
-          console.log('Tab được focus lại, cập nhật dữ liệu...');
+          console.log('👁️ Tab được focus lại, cập nhật dữ liệu...');
           updateLeaderboard();
         }
       }
@@ -473,8 +535,9 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         localStorage.setItem(STORAGE_TIME_KEY, Date.now().toString());
+        console.log('💾 Đã lưu dữ liệu vào localStorage');
       } catch (e) {
-        console.error('Không thể lưu vào localStorage:', e);
+        console.error('❌ Không thể lưu vào localStorage:', e);
       }
     }
     
@@ -486,11 +549,13 @@
         if (savedData && savedTime) {
           previousData = JSON.parse(savedData);
           lastUpdateTime = parseInt(savedTime);
+          lastSuccessfulUpdate = lastUpdateTime;
           renderLeaderboard(previousData);
           startCountdown();
+          console.log('✅ Đã load dữ liệu từ localStorage');
         }
       } catch (e) {
-        console.error('Không thể load từ localStorage:', e);
+        console.error('❌ Không thể load từ localStorage:', e);
       }
     }
     
@@ -507,7 +572,7 @@
           updateCSVInfo();
         }
       } catch (e) {
-        console.error('Không thể load CSV history:', e);
+        console.error('❌ Không thể load CSV history:', e);
       }
     }
     
@@ -520,7 +585,7 @@
         localStorage.setItem(CSV_COUNT_KEY, csvCount.toString());
         updateCSVInfo();
       } catch (e) {
-        console.error('Không thể lưu CSV history:', e);
+        console.error('❌ Không thể lưu CSV history:', e);
       }
     }
     
@@ -529,6 +594,26 @@
       if (csvHistory.length > 0) {
         const lastTime = new Date(csvHistory[csvHistory.length - 1].timestamp);
         document.getElementById('lastCsvTime').textContent = lastTime.toLocaleString('vi-VN');
+      }
+    }
+    
+    function clearAllData() {
+      if (confirm('⚠️ Bạn có chắc muốn xóa TẤT CẢ dữ liệu và lịch sử CSV?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_TIME_KEY);
+        localStorage.removeItem(CSV_HISTORY_KEY);
+        localStorage.removeItem(CSV_COUNT_KEY);
+        
+        previousData = null;
+        lastUpdateTime = null;
+        csvHistory = [];
+        csvCount = 0;
+        
+        updateCSVInfo();
+        showMessage('✅ Đã xóa tất cả dữ liệu!', 'success');
+        
+        // Reload lại dữ liệu mới
+        updateLeaderboard();
       }
     }
     
@@ -621,7 +706,7 @@
         
         console.log('✅ Đã tự động lưu CSV lần thứ', csvCount);
       } catch (e) {
-        console.error('Lỗi khi tự động lưu CSV:', e);
+        console.error('❌ Lỗi khi tự động lưu CSV:', e);
       }
     }
     
@@ -661,13 +746,32 @@
     
     function showMessage(message, type = 'success') {
       const container = document.getElementById('messageContainer');
-      const className = type === 'error' ? 'error' : 'success';
+      const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'success';
       
       container.innerHTML = `<div class="${className}">${message}</div>`;
       
       setTimeout(() => {
         container.innerHTML = '';
-      }, 3000);
+      }, 5000);
+    }
+    
+    function updateConnectionStatus(isOnline) {
+      const statusDiv = document.getElementById('connectionStatus');
+      if (isOnline) {
+        statusDiv.innerHTML = '<span class="live-indicator"></span><span class="status-online">REALTIME</span>';
+      } else {
+        statusDiv.innerHTML = '<span class="error-indicator"></span><span class="status-error">LỖI KẾT NỐI</span>';
+      }
+    }
+    
+    function showRetryInfo(show, count = 0) {
+      const retryDiv = document.getElementById('retryInfo');
+      if (show) {
+        retryDiv.style.display = 'block';
+        document.getElementById('retryCount').textContent = count;
+      } else {
+        retryDiv.style.display = 'none';
+      }
     }
     
     function updateViewerCount() {
@@ -715,51 +819,89 @@
     }
     
     async function fetchData() {
-      for (let i = 0; i < CORS_PROXIES.length; i++) {
+      // Thử tất cả các proxy
+      for (let proxyAttempt = 0; proxyAttempt < CORS_PROXIES.length; proxyAttempt++) {
         try {
           const proxy = CORS_PROXIES[currentProxyIndex];
           const url = proxy + encodeURIComponent(API_URL);
           
-          console.log('🔄 Đang kết nối API qua proxy:', proxy);
+          console.log(`🔄 [Proxy ${currentProxyIndex + 1}/${CORS_PROXIES.length}] Đang kết nối:`, proxy);
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
           
           const response = await fetch(url, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
             },
-            cache: 'no-cache'
+            cache: 'no-cache',
+            signal: controller.signal
           });
           
+          clearTimeout(timeoutId);
+          
           if (!response.ok) {
-            throw new Error('HTTP Error: ' + response.status);
+            throw new Error(`HTTP Error: ${response.status}`);
           }
           
           const data = await response.json();
           
           if (data.errorCode === 0 && data.data && data.data.products) {
             console.log('✅ Kết nối thành công! Số thí sinh:', data.data.products.length);
+            updateConnectionStatus(true);
+            retryCount = 0;
+            showRetryInfo(false);
             return data.data.products;
           } else {
             throw new Error('Dữ liệu không hợp lệ');
           }
         } catch (error) {
-          console.error('❌ Lỗi với proxy', CORS_PROXIES[currentProxyIndex], ':', error);
+          console.error(`❌ Lỗi với proxy ${currentProxyIndex + 1}:`, error.message);
           currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
           
-          if (i === CORS_PROXIES.length - 1) {
-            showMessage('Không thể kết nối API. Đang thử lại...', 'error');
+          // Nếu đã thử hết tất cả proxy
+          if (proxyAttempt === CORS_PROXIES.length - 1) {
+            updateConnectionStatus(false);
             return null;
           }
+          
+          // Đợi 2 giây trước khi thử proxy tiếp theo
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
       
       return null;
     }
     
-    function calculateStats(currentProducts, previousProducts) {
-      if (!previousProducts || !lastUpdateTime) return currentProducts;
+    async function retryFetch() {
+      if (retryCount >= MAX_RETRIES) {
+        console.log('❌ Đã thử tối đa, dừng retry');
+        showMessage('⚠️ Không thể kết nối API sau nhiều lần thử. Hiển thị dữ liệu cũ.', 'warning');
+        showRetryInfo(false);
+        retryCount = 0;
+        return null;
+      }
       
-      const timeDiff = (Date.now() - lastUpdateTime) / 1000 / 60;
+      retryCount++;
+      showRetryInfo(true, retryCount);
+      console.log(`🔄 Thử lại lần ${retryCount}/${MAX_RETRIES}...`);
+      
+      const products = await fetchData();
+      
+      if (products) {
+        return products;
+      } else {
+        // Đợi 10 giây rồi thử lại
+        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+        return await retryFetch();
+      }
+    }
+    
+    function calculateStats(currentProducts, previousProducts) {
+      if (!previousProducts || !lastSuccessfulUpdate) return currentProducts;
+      
+      const timeDiff = (Date.now() - lastSuccessfulUpdate) / 1000 / 60;
       
       return currentProducts.map(current => {
         const previous = previousProducts.find(p => p.id === current.id);
@@ -850,6 +992,12 @@
     }
     
     async function updateLeaderboard() {
+      if (isUpdating) {
+        console.log('⚠️ Đang cập nhật, bỏ qua yêu cầu này');
+        return;
+      }
+      
+      isUpdating = true;
       const leaderboardDiv = document.getElementById('leaderboard');
       const refreshBtn = document.getElementById('refreshBtn');
       
@@ -857,28 +1005,45 @@
       refreshBtn.disabled = true;
       refreshBtn.innerHTML = '<span>⏳</span><span>Đang cập nhật...</span>';
       
-      const products = await fetchData();
+      console.log('🔄 Bắt đầu cập nhật dữ liệu...');
+      
+      let products = await fetchData();
+      
+      // Nếu fetch thất bại, thử retry
+      if (!products) {
+        console.log('⚠️ Fetch thất bại, bắt đầu retry...');
+        products = await retryFetch();
+      }
       
       if (products) {
+        console.log('✅ Cập nhật thành công!');
         renderLeaderboard(products);
         saveToStorage(products);
         autoSaveCSV(products);
         
         previousData = products;
         lastUpdateTime = Date.now();
+        lastSuccessfulUpdate = Date.now();
         startCountdown();
         document.getElementById('messageContainer').innerHTML = '';
       } else if (previousData) {
+        console.log('⚠️ Hiển thị dữ liệu cũ');
         renderLeaderboard(previousData);
+        showMessage('⚠️ Không thể cập nhật, hiển thị dữ liệu cũ', 'warning');
+      } else {
+        console.log('❌ Không có dữ liệu');
+        showMessage('❌ Không thể tải dữ liệu. Vui lòng thử lại sau.', 'error');
       }
       
       leaderboardDiv.classList.remove('updating');
       refreshBtn.disabled = false;
       refreshBtn.innerHTML = '<span>🔄</span><span>Cập nhật ngay</span>';
+      isUpdating = false;
     }
     
     function manualRefresh() {
       console.log('🔄 Cập nhật thủ công...');
+      retryCount = 0; // Reset retry count
       updateLeaderboard();
     }
     
