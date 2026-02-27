@@ -6,1048 +6,663 @@
   <title>Bảng Xếp Hạng Realtime - Tân Binh Toàn Năng 2025</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --color-primary: #667eea;
+      --color-secondary: #764ba2;
+      --color-success: #51cf66;
+      --color-warning: #ffa726;
+      --color-error: #ff6b6b;
+      --color-text: #333;
+      --color-white: #ffffff;
+      --color-bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--color-bg-gradient);
       min-height: 100vh;
       padding: 20px;
     }
     
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    .header { text-align: center; color: var(--color-white); margin-bottom: 30px; }
+    .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    
+    .status-bar { 
+      display: flex; 
+      justify-content: center; 
+      gap: 20px; 
+      flex-wrap: wrap; 
+      margin-top: 15px; 
     }
     
-    .header {
-      text-align: center;
-      color: white;
-      margin-bottom: 30px;
+    .status-item { 
+      background: rgba(255,255,255,0.2); 
+      padding: 8px 15px; 
+      border-radius: 20px; 
+      font-size: 0.85em; 
+      color: var(--color-white); 
     }
     
-    .header h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
+    .status-online { color: #90EE90; font-weight: bold; }
+    .status-error { color: var(--color-error); font-weight: bold; }
     
-    .status-bar {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-top: 15px;
-    }
-    
-    .status-item {
-      background: rgba(255,255,255,0.2);
-      padding: 8px 15px;
-      border-radius: 20px;
-      font-size: 0.85em;
-    }
-    
-    .status-online {
-      color: #90EE90;
-      font-weight: bold;
-    }
-    
-    .status-error {
-      color: #ff6b6b;
-      font-weight: bold;
-    }
-    
-    .action-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+    .action-buttons { 
+      display: flex; 
+      justify-content: center; 
+      gap: 15px; 
+      flex-wrap: wrap; 
+      margin-bottom: 20px; 
     }
     
     .btn {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: 2px solid white;
-      padding: 12px 30px;
-      border-radius: 10px;
-      cursor: pointer;
+      background: rgba(255,255,255,0.2); 
+      color: var(--color-white); 
+      border: 2px solid var(--color-white);
+      padding: 12px 30px; 
+      border-radius: 10px; 
+      cursor: pointer; 
       font-size: 1em;
-      transition: all 0.3s ease;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
+      transition: all 0.3s ease; 
+      font-weight: bold; 
+      display: flex; 
+      align-items: center; 
       gap: 8px;
     }
     
-    .btn:hover {
-      background: rgba(255,255,255,0.3);
-      transform: scale(1.05);
-    }
+    .btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-success { background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); }
+    .btn-warning { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
     
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-color: white;
-    }
-    
-    .btn-success {
-      background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
-      border-color: white;
-    }
-    
-    .btn-warning {
-      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-      border-color: white;
-    }
-    
-    .leaderboard {
-      background: white;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    .leaderboard { 
+      background: var(--color-white); 
+      border-radius: 20px; 
+      padding: 30px; 
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
     }
     
     .contestant {
-      display: flex;
-      align-items: center;
-      padding: 20px;
+      display: flex; 
+      align-items: center; 
+      padding: 20px; 
       margin-bottom: 15px;
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      border-radius: 15px;
+      border-radius: 15px; 
       transition: transform 0.3s ease, box-shadow 0.3s ease;
-      position: relative;
-      overflow: hidden;
     }
     
-    .contestant:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    .contestant:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+    .contestant.rank-1 { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
+    .contestant.rank-2 { background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%); }
+    .contestant.rank-3 { background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%); }
+    
+    .rank { font-size: 2em; font-weight: bold; width: 60px; text-align: center; color: var(--color-text); }
+    .rank-1 .rank, .rank-2 .rank, .rank-3 .rank { color: var(--color-white); text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    
+    .avatar { 
+      width: 80px; 
+      height: 80px; 
+      border-radius: 50%; 
+      object-fit: cover; 
+      border: 4px solid var(--color-white); 
+      margin-right: 20px; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
     }
     
-    .contestant.rank-1 {
-      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    }
+    .info { flex: 1; }
+    .name { font-size: 1.4em; font-weight: bold; color: var(--color-text); margin-bottom: 5px; }
+    .rank-1 .name, .rank-2 .name, .rank-3 .name { color: var(--color-white); }
     
-    .contestant.rank-2 {
-      background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
-    }
-    
-    .contestant.rank-3 {
-      background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
-    }
-    
-    .rank {
-      font-size: 2em;
-      font-weight: bold;
-      width: 60px;
-      text-align: center;
-      color: #333;
-    }
-    
-    .rank-1 .rank, .rank-2 .rank, .rank-3 .rank {
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    
-    .avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid white;
-      margin-right: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    
-    .info {
-      flex: 1;
-    }
-    
-    .name {
-      font-size: 1.5em;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 5px;
-    }
-    
-    .rank-1 .name, .rank-2 .name, .rank-3 .name {
-      color: white;
-    }
-    
-    .stats {
-      display: flex;
-      gap: 15px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
+    .stats { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
     
     .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      display: flex; 
+      align-items: center; 
+      gap: 5px; 
       font-size: 0.85em;
-      background: rgba(255,255,255,0.3);
-      padding: 4px 10px;
+      background: rgba(255,255,255,0.4); 
+      padding: 4px 10px; 
       border-radius: 12px;
     }
     
-    .rank-1 .stat-item, .rank-2 .stat-item, .rank-3 .stat-item {
-      background: rgba(255,255,255,0.4);
-      color: white;
-      font-weight: 600;
+    .rank-1 .stat-item, .rank-2 .stat-item, .rank-3 .stat-item { color: var(--color-white); font-weight: 600; }
+    
+    .increase { color: #27ae60; font-weight: bold; }
+    .rank-1 .increase, .rank-2 .increase, .rank-3 .increase { color: #90EE90; }
+    
+    .speed { color: #3498db; font-weight: bold; }
+    .rank-1 .speed, .rank-2 .speed, .rank-3 .speed { color: #ADD8E6; }
+    
+    .gap { color: #e74c3c; font-weight: bold; }
+    .rank-1 .gap, .rank-2 .gap, .rank-3 .gap { color: #ffcccc; }
+    
+    .points-container { text-align: right; min-width: 150px; }
+    .points { font-size: 1.8em; font-weight: bold; color: var(--color-primary); }
+    .rank-1 .points, .rank-2 .points, .rank-3 .points { color: var(--color-white); }
+    .points-label { font-size: 0.55em; display: block; opacity: 0.8; }
+    
+    .loading { text-align: center; padding: 40px; color: #666; font-size: 1.2em; }
+    
+    .message { 
+      padding: 15px; 
+      border-radius: 10px; 
+      text-align: center; 
+      margin-bottom: 20px; 
+      color: var(--color-white); 
+      animation: slideIn 0.3s ease; 
     }
     
-    .increase {
-      color: #27ae60;
-      font-weight: bold;
+    .message.error { background: var(--color-error); }
+    .message.success { background: var(--color-success); }
+    .message.warning { background: var(--color-warning); }
+    
+    @keyframes slideIn { 
+      from { transform: translateY(-20px); opacity: 0; } 
+      to { transform: translateY(0); opacity: 1; } 
     }
     
-    .rank-1 .increase, .rank-2 .increase, .rank-3 .increase {
-      color: #90EE90;
+    .refresh-info { 
+      text-align: center; 
+      color: var(--color-white); 
+      margin-top: 20px; 
+      font-size: 0.9em; 
+      opacity: 0.9; 
     }
     
-    .speed {
-      color: #3498db;
-      font-weight: bold;
+    .csv-info { 
+      background: rgba(255,255,255,0.15); 
+      color: var(--color-white); 
+      padding: 15px; 
+      border-radius: 10px; 
+      margin-top: 20px; 
+      text-align: center; 
+      font-size: 0.9em; 
     }
     
-    .rank-1 .speed, .rank-2 .speed, .rank-3 .speed {
-      color: #ADD8E6;
+    .csv-info strong { color: #90EE90; }
+    
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .updating { animation: pulse 1.5s ease-in-out infinite; }
+    
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .live-dot { 
+      display: inline-block; 
+      width: 10px; 
+      height: 10px; 
+      border-radius: 50%; 
+      margin-right: 5px; 
+      animation: blink 2s ease-in-out infinite; 
     }
     
-    .gap {
-      color: #e74c3c;
-      font-weight: bold;
-    }
-    
-    .rank-1 .gap, .rank-2 .gap, .rank-3 .gap {
-      color: #ffcccc;
-    }
-    
-    .points-container {
-      text-align: right;
-      min-width: 150px;
-    }
-    
-    .points {
-      font-size: 1.8em;
-      font-weight: bold;
-      color: #667eea;
-    }
-    
-    .rank-1 .points, .rank-2 .points, .rank-3 .points {
-      color: white;
-    }
-    
-    .points-label {
-      font-size: 0.6em;
-      display: block;
-      opacity: 0.8;
-    }
-    
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: white;
-      font-size: 1.2em;
-    }
-    
-    .error {
-      background: #ff6b6b;
-      color: white;
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    
-    .success {
-      background: #51cf66;
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      margin-bottom: 20px;
-      animation: slideIn 0.3s ease;
-    }
-    
-    .warning {
-      background: #ffa726;
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    
-    @keyframes slideIn {
-      from {
-        transform: translateY(-20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-    
-    .refresh-info {
-      text-align: center;
-      color: white;
-      margin-top: 20px;
-      font-size: 0.9em;
-      opacity: 0.9;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    
-    .updating {
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-    
-    .live-indicator {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      background: #90EE90;
-      border-radius: 50%;
-      margin-right: 5px;
-      animation: blink 2s ease-in-out infinite;
-    }
-    
-    .error-indicator {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      background: #ff6b6b;
-      border-radius: 50%;
-      margin-right: 5px;
-      animation: blink 1s ease-in-out infinite;
-    }
-    
-    .csv-info {
-      background: rgba(255,255,255,0.15);
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 20px;
-      text-align: center;
-      font-size: 0.9em;
-    }
-    
-    .csv-info strong {
-      color: #90EE90;
-    }
-    
-    .retry-info {
-      background: rgba(255,255,255,0.1);
-      color: white;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 15px;
-      text-align: center;
-      font-size: 0.85em;
-    }
+    .live-dot.green { background: #90EE90; }
+    .live-dot.red { background: var(--color-error); animation-duration: 1s; }
     
     @media (max-width: 768px) {
-      .header h1 {
-        font-size: 1.8em;
-      }
-      
-      .contestant {
-        padding: 15px;
-        flex-wrap: wrap;
-      }
-      
-      .rank {
-        font-size: 1.5em;
-        width: 40px;
-      }
-      
-      .avatar {
-        width: 60px;
-        height: 60px;
-        margin-right: 15px;
-      }
-      
-      .name {
-        font-size: 1.2em;
-      }
-      
-      .points {
-        font-size: 1.3em;
-      }
-      
-      .stats {
-        width: 100%;
-        margin-left: 55px;
-      }
-      
-      .points-container {
-        min-width: auto;
-      }
-      
-      .status-bar {
-        font-size: 0.8em;
-      }
-      
-      .action-buttons {
-        flex-direction: column;
-      }
-      
-      .btn {
-        width: 100%;
-        justify-content: center;
-      }
+      .header h1 { font-size: 1.8em; }
+      .contestant { padding: 12px; flex-wrap: wrap; }
+      .rank { font-size: 1.5em; width: 40px; }
+      .avatar { width: 60px; height: 60px; margin-right: 12px; }
+      .name { font-size: 1.1em; }
+      .points { font-size: 1.3em; }
+      .stats { width: 100%; }
+      .points-container { min-width: auto; }
+      .action-buttons { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🏆 Bảng Xếp Hạng Tân Binh Toàn Năng 2025</h1>
-      <div class="status-bar">
-        <div class="status-item" id="connectionStatus">
-          <span class="live-indicator"></span>
-          <span class="status-online">REALTIME</span>
-        </div>
-        <div class="status-item" id="lastUpdate">Đang tải...</div>
-        <div class="status-item" id="countdown">--:--</div>
-        <div class="status-item" id="viewerCount">👥 Đang xem</div>
+<div class="container">
+  <div class="header">
+    <h1>🏆 Bảng Xếp Hạng Tân Binh Toàn Năng 2025</h1>
+    <div class="status-bar">
+      <div class="status-item" id="connectionStatus">
+        <span class="live-dot green"></span>
+        <span class="status-online">REALTIME</span>
       </div>
-    </div>
-    
-    <div class="action-buttons">
-      <button class="btn btn-primary" id="refreshBtn" onclick="manualRefresh()">
-        <span>🔄</span>
-        <span>Cập nhật ngay</span>
-      </button>
-      <button class="btn btn-success" onclick="downloadCSV()">
-        <span>📥</span>
-        <span>Tải CSV hiện tại</span>
-      </button>
-      <button class="btn btn-success" onclick="downloadAllHistory()">
-        <span>📊</span>
-        <span>Tải lịch sử CSV</span>
-      </button>
-      <button class="btn btn-warning" onclick="clearAllData()">
-        <span>🗑️</span>
-        <span>Xóa dữ liệu</span>
-      </button>
-    </div>
-    
-    <div id="messageContainer"></div>
-    <div id="leaderboard" class="loading">
-      <div style="font-size: 3em;">⏳</div>
-      <div>Đang tải dữ liệu...</div>
-      <div style="margin-top: 10px; opacity: 0.7;">Vui lòng đợi trong giây lát</div>
-    </div>
-    
-    <div class="refresh-info">
-      ⚡ Tự động cập nhật mỗi <strong>1 PHÚT</strong> | 📊 Hiển thị Gap + Tốc độ tăng điểm Top 5 | 💾 Tự động lưu CSV
-    </div>
-    
-    <div class="csv-info" id="csvInfo">
-      📁 CSV tự động lưu: <strong id="csvCount">0</strong> lần | 
-      🕐 Lần cuối: <strong id="lastCsvTime">Chưa có</strong>
-    </div>
-    
-    <div class="retry-info" id="retryInfo" style="display: none;">
-      ⚠️ Đang thử lại kết nối... Lần thử: <strong id="retryCount">0</strong>
+      <div class="status-item" id="lastUpdate">Đang tải...</div>
+      <div class="status-item" id="countdown">--:--</div>
+      <div class="status-item" id="viewerCount">👥 ---</div>
     </div>
   </div>
-  
-  <script>
-    const API_URL = 'https://eventista-platform-api.1vote.vn/v1/internal/tenants/lsvBBR/products?eventId=EVENT_IZDYX';
-    const UPDATE_INTERVAL = 1 * 60 * 1000; // 1 PHÚT
-    const RETRY_INTERVAL = 10 * 1000; // 10 giây retry
-    const MAX_RETRIES = 5;
-    const STORAGE_KEY = 'leaderboard_data';
-    const STORAGE_TIME_KEY = 'leaderboard_time';
-    const CSV_HISTORY_KEY = 'csv_history';
-    const CSV_COUNT_KEY = 'csv_count';
+
+  <div class="action-buttons">
+    <button class="btn" id="refreshBtn" onclick="manualRefresh()">🔄 Cập nhật ngay</button>
+    <button class="btn btn-success" onclick="downloadCSV()">📥 Tải CSV hiện tại</button>
+    <button class="btn btn-success" onclick="downloadAllHistory()">📊 Tải lịch sử CSV</button>
+    <button class="btn btn-warning" onclick="clearAllData()">🗑️ Xóa dữ liệu</button>
+  </div>
+
+  <div id="messageContainer"></div>
+  <div id="leaderboard" class="leaderboard">
+    <div class="loading">⏳ Đang tải dữ liệu...</div>
+  </div>
+
+  <div class="refresh-info">
+    ⚡ Tự động cập nhật mỗi <strong>1 PHÚT</strong> | 📊 Hiển thị Gap + Tốc độ tăng điểm Top 5 | 💾 Tự động lưu CSV<br>
+    ✅ <strong>Sẵn sàng deploy lên GitHub Pages</strong> - Chạy 100% trên trình duyệt
+  </div>
+  <div class="csv-info">
+    📁 CSV tự động lưu: <strong id="csvCount">0</strong> lần |
+    🕐 Lần cuối: <strong id="lastCsvTime">Chưa có</strong>
+  </div>
+</div>
+
+<script>
+  const API_URL = 'https://eventista-platform-api.1vote.vn/v1/internal/tenants/lsvBBR/products?eventId=EVENT_IZDYX';
+  const UPDATE_INTERVAL = 60 * 1000;
+  const STORAGE_KEY = 'tbtn_data';
+  const STORAGE_TIME_KEY = 'tbtn_time';
+  const CSV_HISTORY_KEY = 'tbtn_csv_history';
+  const CSV_COUNT_KEY = 'tbtn_csv_count';
+
+  let previousData = null;
+  let lastUpdateTime = null;
+  let lastSuccessfulUpdate = null;
+  let countdownInterval = null;
+  let isUpdating = false;
+  let csvHistory = [];
+  let csvCount = 0;
+  let updateTimer = null;
+
+  function init() {
+    console.log('🚀 App Initialized');
+    console.log('📡 API URL:', API_URL);
     
-    let previousData = null;
-    let lastUpdateTime = null;
-    let countdownInterval = null;
-    let updateTimer = null;
-    let retryTimer = null;
-    let csvHistory = [];
-    let csvCount = 0;
-    let retryCount = 0;
-    let isUpdating = false;
-    let lastSuccessfulUpdate = null;
-    
-    // CORS Proxies với thứ tự ưu tiên
-    const CORS_PROXIES = [
-      'https://api.allorigins.win/raw?url=',
-      'https://corsproxy.io/?',
-      'https://api.codetabs.com/v1/proxy?quest=',
-      // Thêm proxy dự phòng
-      'https://cors-anywhere.herokuapp.com/',
-    ];
-    let currentProxyIndex = 0;
-    
-    function init() {
-      console.log('🚀 Khởi động ứng dụng...');
-      loadFromStorage();
-      loadCSVHistory();
-      updateLeaderboard();
-      updateTimer = setInterval(scheduleUpdate, UPDATE_INTERVAL);
-      updateViewerCount();
-      setInterval(updateViewerCount, 30000);
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-    }
-    
-    function scheduleUpdate() {
-      console.log('⏰ Đến giờ cập nhật tự động...');
-      updateLeaderboard();
-    }
-    
-    function handleVisibilityChange() {
-      if (!document.hidden) {
-        const now = Date.now();
-        if (lastUpdateTime && (now - lastUpdateTime) > UPDATE_INTERVAL) {
-          console.log('👁️ Tab được focus lại, cập nhật dữ liệu...');
-          updateLeaderboard();
-        }
-      }
-    }
-    
-    function saveToStorage(data) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        localStorage.setItem(STORAGE_TIME_KEY, Date.now().toString());
-        console.log('💾 Đã lưu dữ liệu vào localStorage');
-      } catch (e) {
-        console.error('❌ Không thể lưu vào localStorage:', e);
-      }
-    }
-    
-    function loadFromStorage() {
-      try {
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        const savedTime = localStorage.getItem(STORAGE_TIME_KEY);
-        
-        if (savedData && savedTime) {
-          previousData = JSON.parse(savedData);
-          lastUpdateTime = parseInt(savedTime);
-          lastSuccessfulUpdate = lastUpdateTime;
-          renderLeaderboard(previousData);
-          startCountdown();
-          console.log('✅ Đã load dữ liệu từ localStorage');
-        }
-      } catch (e) {
-        console.error('❌ Không thể load từ localStorage:', e);
-      }
-    }
-    
-    function loadCSVHistory() {
-      try {
-        const saved = localStorage.getItem(CSV_HISTORY_KEY);
-        const count = localStorage.getItem(CSV_COUNT_KEY);
-        
-        if (saved) {
-          csvHistory = JSON.parse(saved);
-        }
-        if (count) {
-          csvCount = parseInt(count);
-          updateCSVInfo();
-        }
-      } catch (e) {
-        console.error('❌ Không thể load CSV history:', e);
-      }
-    }
-    
-    function saveCSVHistory() {
-      try {
-        if (csvHistory.length > 100) {
-          csvHistory = csvHistory.slice(-100);
-        }
-        localStorage.setItem(CSV_HISTORY_KEY, JSON.stringify(csvHistory));
-        localStorage.setItem(CSV_COUNT_KEY, csvCount.toString());
-        updateCSVInfo();
-      } catch (e) {
-        console.error('❌ Không thể lưu CSV history:', e);
-      }
-    }
-    
-    function updateCSVInfo() {
-      document.getElementById('csvCount').textContent = csvCount;
-      if (csvHistory.length > 0) {
-        const lastTime = new Date(csvHistory[csvHistory.length - 1].timestamp);
-        document.getElementById('lastCsvTime').textContent = lastTime.toLocaleString('vi-VN');
-      }
-    }
-    
-    function clearAllData() {
-      if (confirm('⚠️ Bạn có chắc muốn xóa TẤT CẢ dữ liệu và lịch sử CSV?')) {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_TIME_KEY);
-        localStorage.removeItem(CSV_HISTORY_KEY);
-        localStorage.removeItem(CSV_COUNT_KEY);
-        
-        previousData = null;
-        lastUpdateTime = null;
-        csvHistory = [];
-        csvCount = 0;
-        
-        updateCSVInfo();
-        showMessage('✅ Đã xóa tất cả dữ liệu!', 'success');
-        
-        // Reload lại dữ liệu mới
+    loadFromMemory();
+    loadCSVHistory();
+    updateViewerCount();
+    setInterval(updateViewerCount, 30000);
+    updateTimer = setInterval(updateLeaderboard, UPDATE_INTERVAL);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && lastUpdateTime && Date.now() - lastUpdateTime > UPDATE_INTERVAL) {
         updateLeaderboard();
       }
-    }
+    });
     
-    function convertToCSV(products) {
-      const sorted = products.sort((a, b) => b.points - a.points);
-      
-      let csv = '\uFEFF';
-      csv += 'Hạng,ID,Tên,Điểm,Gap với hạng trước,% so với #1,Avatar URL,Thời gian\n';
-      
-      const timestamp = new Date().toLocaleString('vi-VN');
-      const top1Points = sorted[0].points;
-      
-      sorted.forEach((contestant, index) => {
-        const rank = index + 1;
-        let gap = '';
-        let percent = '';
-        
-        if (rank === 1) {
-          gap = '---';
-          percent = '100%';
-        } else {
-          const gapValue = sorted[index - 1].points - contestant.points;
-          gap = `-${gapValue}`;
-          const percentDiff = ((top1Points - contestant.points) / top1Points) * 100;
-          percent = `-${percentDiff.toFixed(2)}%`;
-        }
-        
-        csv += `${rank},"${contestant.id}","${contestant.name}",${contestant.points},"${gap}","${percent}","${contestant.avatar}","${timestamp}"\n`;
-      });
-      
-      return csv;
+    console.log('⏳ Fetching initial data...');
+    updateLeaderboard();
+  }
+
+  function saveToMemory(data) {
+    previousData = data;
+    lastUpdateTime = Date.now();
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_TIME_KEY, Date.now().toString());
+      console.log('💾 Saved to localStorage');
+    } catch (e) {
+      console.error('❌ Cannot save to localStorage:', e);
     }
-    
-    function downloadCSV() {
-      if (!previousData || previousData.length === 0) {
-        showMessage('Chưa có dữ liệu để tải!', 'error');
-        return;
+  }
+
+  function loadFromMemory() {
+    try {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      const savedTime = localStorage.getItem(STORAGE_TIME_KEY);
+      
+      if (savedData && savedTime) {
+        previousData = JSON.parse(savedData);
+        lastUpdateTime = parseInt(savedTime);
+        lastSuccessfulUpdate = lastUpdateTime;
+        renderLeaderboard(previousData);
+        startCountdown();
+        console.log('✅ Loaded from localStorage');
       }
-      
-      const csv = convertToCSV(previousData);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `leaderboard_${timestamp}.csv`);
-      link.style.visibility = 'hidden';
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      showMessage('✅ Đã tải CSV thành công!', 'success');
+    } catch (e) {
+      console.error('❌ Cannot load from localStorage:', e);
     }
+  }
+
+  function loadCSVHistory() {
+    try {
+      const saved = localStorage.getItem(CSV_HISTORY_KEY);
+      const count = localStorage.getItem(CSV_COUNT_KEY);
+      
+      if (saved) csvHistory = JSON.parse(saved);
+      if (count) {
+        csvCount = parseInt(count);
+        updateCSVInfo();
+      }
+    } catch (e) {
+      console.error('❌ Cannot load CSV history:', e);
+    }
+  }
+
+  function saveCSVHistory() {
+    try {
+      if (csvHistory.length > 100) csvHistory = csvHistory.slice(-100);
+      localStorage.setItem(CSV_HISTORY_KEY, JSON.stringify(csvHistory));
+      localStorage.setItem(CSV_COUNT_KEY, csvCount.toString());
+      updateCSVInfo();
+    } catch (e) {
+      console.error('❌ Cannot save CSV history:', e);
+    }
+  }
+
+  function clearAllData() {
+    if (!confirm('⚠️ Xóa TẤT CẢ dữ liệu và lịch sử CSV?')) return;
     
-    function autoSaveCSV(products) {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_TIME_KEY);
+    localStorage.removeItem(CSV_HISTORY_KEY);
+    localStorage.removeItem(CSV_COUNT_KEY);
+    
+    previousData = null;
+    lastUpdateTime = null;
+    csvHistory = [];
+    csvCount = 0;
+    
+    updateCSVInfo();
+    showMessage('✅ Đã xóa tất cả dữ liệu!', 'success');
+    updateLeaderboard();
+  }
+
+  function updateCSVInfo() {
+    document.getElementById('csvCount').textContent = csvCount;
+    if (csvHistory.length > 0) {
+      document.getElementById('lastCsvTime').textContent =
+        new Date(csvHistory[csvHistory.length - 1].timestamp).toLocaleString('vi-VN');
+    }
+  }
+
+  // CORS Proxies với thứ tự ưu tiên
+  const CORS_PROXIES = [
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
+    'https://api.codetabs.com/v1/proxy?quest=',
+  ];
+  let currentProxyIndex = 0;
+  const MAX_RETRIES = 5;
+  const RETRY_INTERVAL = 10000;
+  let retryCount = 0;
+
+  async function fetchData() {
+    for (let proxyAttempt = 0; proxyAttempt < CORS_PROXIES.length; proxyAttempt++) {
       try {
-        const timestamp = Date.now();
-        const sorted = products.sort((a, b) => b.points - a.points);
-        const top1Points = sorted[0].points;
+        const proxy = CORS_PROXIES[currentProxyIndex];
+        const url = proxy + encodeURIComponent(API_URL);
         
-        const csvData = {
-          timestamp: timestamp,
-          data: sorted.map((p, index) => {
-            const rank = index + 1;
-            let gap = null;
-            let percent = 100;
-            
-            if (rank > 1) {
-              gap = sorted[index - 1].points - p.points;
-              percent = ((top1Points - p.points) / top1Points) * 100;
-            }
-            
-            return {
-              rank: rank,
-              id: p.id,
-              name: p.name,
-              points: p.points,
-              gap: gap,
-              percent: percent,
-              avatar: p.avatar
-            };
-          })
-        };
+        console.log(`🔄 [Proxy ${currentProxyIndex + 1}/${CORS_PROXIES.length}] Fetching:`, proxy);
         
-        csvHistory.push(csvData);
-        csvCount++;
-        saveCSVHistory();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
         
-        console.log('✅ Đã tự động lưu CSV lần thứ', csvCount);
-      } catch (e) {
-        console.error('❌ Lỗi khi tự động lưu CSV:', e);
-      }
-    }
-    
-    function downloadAllHistory() {
-      if (csvHistory.length === 0) {
-        showMessage('Chưa có lịch sử CSV!', 'error');
-        return;
-      }
-      
-      let csv = '\uFEFF';
-      csv += 'Thời gian,Hạng,ID,Tên,Điểm,Gap với hạng trước,% so với #1,Avatar URL\n';
-      
-      csvHistory.forEach(record => {
-        const time = new Date(record.timestamp).toLocaleString('vi-VN');
-        record.data.forEach(contestant => {
-          const gap = contestant.gap !== null ? `-${contestant.gap}` : '---';
-          const percent = contestant.rank === 1 ? '100%' : `-${contestant.percent.toFixed(2)}%`;
-          csv += `"${time}",${contestant.rank},"${contestant.id}","${contestant.name}",${contestant.points},"${gap}","${percent}","${contestant.avatar}"\n`;
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-cache',
+          signal: controller.signal
         });
-      });
-      
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `leaderboard_history_${timestamp}.csv`);
-      link.style.visibility = 'hidden';
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      showMessage(`✅ Đã tải lịch sử ${csvHistory.length} lần cập nhật!`, 'success');
-    }
-    
-    function showMessage(message, type = 'success') {
-      const container = document.getElementById('messageContainer');
-      const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'success';
-      
-      container.innerHTML = `<div class="${className}">${message}</div>`;
-      
-      setTimeout(() => {
-        container.innerHTML = '';
-      }, 5000);
-    }
-    
-    function updateConnectionStatus(isOnline) {
-      const statusDiv = document.getElementById('connectionStatus');
-      if (isOnline) {
-        statusDiv.innerHTML = '<span class="live-indicator"></span><span class="status-online">REALTIME</span>';
-      } else {
-        statusDiv.innerHTML = '<span class="error-indicator"></span><span class="status-error">LỖI KẾT NỐI</span>';
-      }
-    }
-    
-    function showRetryInfo(show, count = 0) {
-      const retryDiv = document.getElementById('retryInfo');
-      if (show) {
-        retryDiv.style.display = 'block';
-        document.getElementById('retryCount').textContent = count;
-      } else {
-        retryDiv.style.display = 'none';
-      }
-    }
-    
-    function updateViewerCount() {
-      const count = Math.floor(Math.random() * 50) + 100;
-      document.getElementById('viewerCount').textContent = `👥 ${count} đang xem`;
-    }
-    
-    function formatNumber(num) {
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-    
-    function formatTime() {
-      const now = new Date();
-      return now.toLocaleString('vi-VN', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    }
-    
-    function startCountdown() {
-      if (countdownInterval) clearInterval(countdownInterval);
-      
-      countdownInterval = setInterval(() => {
-        if (!lastUpdateTime) return;
         
-        const now = Date.now();
-        const nextUpdate = lastUpdateTime + UPDATE_INTERVAL;
-        const remaining = nextUpdate - now;
+        clearTimeout(timeoutId);
         
-        if (remaining <= 0) {
-          document.getElementById('countdown').textContent = '⏳ Đang cập nhật...';
-          return;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const json = await res.json();
+        console.log('✅ API Response:', json);
+
+        if (json.errorCode === 0 && json.data?.products) {
+          console.log(`📦 Loaded ${json.data.products.length} products`);
+          updateConnectionStatus(true);
+          retryCount = 0;
+          return json.data.products;
         }
         
-        const minutes = Math.floor(remaining / 60000);
-        const seconds = Math.floor((remaining % 60000) / 1000);
+        throw new Error(json.message || 'Dữ liệu không hợp lệ');
+
+      } catch (err) {
+        console.error(`❌ Proxy ${currentProxyIndex + 1} failed:`, err.message);
+        currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
         
-        document.getElementById('countdown').textContent = 
-          `⏱️ ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      }, 1000);
-    }
-    
-    async function fetchData() {
-      // Thử tất cả các proxy
-      for (let proxyAttempt = 0; proxyAttempt < CORS_PROXIES.length; proxyAttempt++) {
-        try {
-          const proxy = CORS_PROXIES[currentProxyIndex];
-          const url = proxy + encodeURIComponent(API_URL);
-          
-          console.log(`🔄 [Proxy ${currentProxyIndex + 1}/${CORS_PROXIES.length}] Đang kết nối:`, proxy);
-          
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
-          
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-            cache: 'no-cache',
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          
-          if (data.errorCode === 0 && data.data && data.data.products) {
-            console.log('✅ Kết nối thành công! Số thí sinh:', data.data.products.length);
-            updateConnectionStatus(true);
-            retryCount = 0;
-            showRetryInfo(false);
-            return data.data.products;
-          } else {
-            throw new Error('Dữ liệu không hợp lệ');
-          }
-        } catch (error) {
-          console.error(`❌ Lỗi với proxy ${currentProxyIndex + 1}:`, error.message);
-          currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
-          
-          // Nếu đã thử hết tất cả proxy
-          if (proxyAttempt === CORS_PROXIES.length - 1) {
-            updateConnectionStatus(false);
-            return null;
-          }
-          
-          // Đợi 2 giây trước khi thử proxy tiếp theo
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        if (proxyAttempt === CORS_PROXIES.length - 1) {
+          updateConnectionStatus(false);
+          return null;
         }
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
-      
+    }
+    return null;
+  }
+
+  async function retryFetch() {
+    if (retryCount >= MAX_RETRIES) {
+      console.log('❌ Max retries reached');
+      showMessage('⚠️ Không thể kết nối sau nhiều lần thử. Hiển thị dữ liệu cũ.', 'warning');
+      retryCount = 0;
       return null;
     }
     
-    async function retryFetch() {
-      if (retryCount >= MAX_RETRIES) {
-        console.log('❌ Đã thử tối đa, dừng retry');
-        showMessage('⚠️ Không thể kết nối API sau nhiều lần thử. Hiển thị dữ liệu cũ.', 'warning');
-        showRetryInfo(false);
-        retryCount = 0;
-        return null;
-      }
-      
-      retryCount++;
-      showRetryInfo(true, retryCount);
-      console.log(`🔄 Thử lại lần ${retryCount}/${MAX_RETRIES}...`);
-      
-      const products = await fetchData();
-      
-      if (products) {
-        return products;
-      } else {
-        // Đợi 10 giây rồi thử lại
-        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        return await retryFetch();
-      }
-    }
+    retryCount++;
+    console.log(`🔄 Retry ${retryCount}/${MAX_RETRIES}...`);
     
-    function calculateStats(currentProducts, previousProducts) {
-      if (!previousProducts || !lastSuccessfulUpdate) return currentProducts;
-      
-      const timeDiff = (Date.now() - lastSuccessfulUpdate) / 1000 / 60;
-      
-      return currentProducts.map(current => {
-        const previous = previousProducts.find(p => p.id === current.id);
-        
-        if (previous) {
-          const pointsIncrease = current.points - previous.points;
-          const speed = timeDiff > 0 ? Math.round(pointsIncrease / timeDiff) : 0;
-          
-          return {
-            ...current,
-            pointsIncrease,
-            speed
-          };
-        }
-        
-        return current;
-      });
-    }
+    const products = await fetchData();
+    if (products) return products;
     
-    function renderLeaderboard(products) {
-      const sorted = products.sort((a, b) => b.points - a.points);
-      const withStats = calculateStats(sorted, previousData);
-      const top1Points = sorted[0].points;
-      
-      const leaderboardDiv = document.getElementById('leaderboard');
-      leaderboardDiv.className = 'leaderboard';
-      
-      let html = '';
-      withStats.forEach((contestant, index) => {
-        const rank = index + 1;
-        const rankClass = rank <= 3 ? `rank-${rank}` : '';
-        const isTop5 = rank <= 5;
-        
-        let statsHtml = '';
-        if (isTop5) {
-          const statItems = [];
-          
-          // Gap với hạng trước
-          if (rank > 1) {
-            const gap = withStats[index - 1].points - contestant.points;
-            statItems.push(`
-              <div class="stat-item">
-                <span>📉</span>
-                <span class="gap">-${formatNumber(gap)} điểm</span>
-              </div>
-            `);
-          }
-          
-          // Tốc độ tăng điểm
-          if (contestant.pointsIncrease !== undefined) {
-            statItems.push(`
-              <div class="stat-item">
-                <span>📈</span>
-                <span class="increase">+${formatNumber(contestant.pointsIncrease)}</span>
-              </div>
-              <div class="stat-item">
-                <span>⚡</span>
-                <span class="speed">${formatNumber(contestant.speed)} đ/phút</span>
-              </div>
-            `);
-          }
-          
-          if (statItems.length > 0) {
-            statsHtml = `<div class="stats">${statItems.join('')}</div>`;
-          }
+    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+    return await retryFetch();
+  }
+
+  function formatNumber(n) {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  function formatTime() {
+    return new Date().toLocaleString('vi-VN', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+  }
+
+  function calculateStats(current, previous) {
+    if (!previous || !lastSuccessfulUpdate) return current;
+    const timeDiff = (Date.now() - lastSuccessfulUpdate) / 60000;
+    return current.map(c => {
+      const prev = previous.find(p => p.id === c.id);
+      if (!prev) return c;
+      const pointsIncrease = c.points - prev.points;
+      const speed = timeDiff > 0 ? Math.round(pointsIncrease / timeDiff) : 0;
+      return { ...c, pointsIncrease, speed };
+    });
+  }
+
+  function renderLeaderboard(products) {
+    const sorted = [...products].sort((a, b) => b.points - a.points);
+    const withStats = calculateStats(sorted, previousData ? [...previousData].sort((a, b) => b.points - a.points) : null);
+
+    const html = withStats.map((c, index) => {
+      const rank = index + 1;
+      const rankClass = rank <= 3 ? `rank-${rank}` : '';
+      const isTop5 = rank <= 5;
+      let statsHtml = '';
+
+      if (isTop5) {
+        const items = [];
+        if (rank > 1) {
+          const gap = withStats[index - 1].points - c.points;
+          items.push(`<div class="stat-item">📉 <span class="gap">-${formatNumber(gap)} điểm</span></div>`);
         }
-        
-        html += `
-          <div class="contestant ${rankClass}">
-            <div class="rank">#${rank}</div>
-            <img src="${contestant.avatar}" alt="${contestant.name}" class="avatar" onerror="this.src='https://via.placeholder.com/80'">
-            <div class="info">
-              <div class="name">${contestant.name}</div>
-              ${statsHtml}
-            </div>
-            <div class="points-container">
-              <div class="points">
-                ${formatNumber(contestant.points)}
-                <span class="points-label">điểm</span>
-              </div>
-            </div>
+        if (c.pointsIncrease !== undefined) {
+          items.push(`<div class="stat-item">📈 <span class="increase">+${formatNumber(c.pointsIncrease)}</span></div>`);
+          items.push(`<div class="stat-item">⚡ <span class="speed">${formatNumber(c.speed)} đ/phút</span></div>`);
+        }
+        if (items.length) statsHtml = `<div class="stats">${items.join('')}</div>`;
+      }
+
+      return `
+        <div class="contestant ${rankClass}">
+          <div class="rank">#${rank}</div>
+          <img src="${c.avatar}" alt="${c.name}" class="avatar" onerror="this.src='https://placehold.co/80x80'">
+          <div class="info">
+            <div class="name">${c.name}</div>
+            ${statsHtml}
           </div>
-        `;
-      });
-      
-      leaderboardDiv.innerHTML = html;
-      document.getElementById('lastUpdate').textContent = `🕐 ${formatTime()}`;
+          <div class="points-container">
+            <div class="points">${formatNumber(c.points)}<span class="points-label">điểm</span></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('leaderboard').innerHTML = html;
+    document.getElementById('lastUpdate').textContent = `🕐 ${formatTime()}`;
+  }
+
+  async function updateLeaderboard() {
+    if (isUpdating) {
+      console.log('⚠️ Already updating, skip');
+      return;
     }
     
-    async function updateLeaderboard() {
-      if (isUpdating) {
-        console.log('⚠️ Đang cập nhật, bỏ qua yêu cầu này');
+    isUpdating = true;
+    const lb = document.getElementById('leaderboard');
+    const btn = document.getElementById('refreshBtn');
+    lb.classList.add('updating');
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang cập nhật...';
+
+    console.log('🔄 Starting update...');
+    let products = await fetchData();
+    
+    if (!products) {
+      console.log('⚠️ Fetch failed, trying retry...');
+      products = await retryFetch();
+    }
+
+    if (products) {
+      console.log('✅ Update successful!');
+      renderLeaderboard(products);
+      saveToMemory(products);
+      autoSaveCSV(products);
+      previousData = products;
+      lastUpdateTime = Date.now();
+      lastSuccessfulUpdate = Date.now();
+      startCountdown();
+      document.getElementById('messageContainer').innerHTML = '';
+    } else if (previousData) {
+      console.log('⚠️ Showing old data');
+      renderLeaderboard(previousData);
+      showMessage('⚠️ Không thể cập nhật, đang hiển thị dữ liệu cũ', 'warning');
+    } else {
+      console.log('❌ No data available');
+      lb.innerHTML = '<div class="loading">❌ Không thể tải dữ liệu. Thử lại sau.</div>';
+      showMessage('❌ Không thể kết nối API!', 'error');
+    }
+
+    lb.classList.remove('updating');
+    btn.disabled = false;
+    btn.innerHTML = '🔄 Cập nhật ngay';
+    isUpdating = false;
+  }
+
+  function manualRefresh() {
+    console.log('🔄 Manual refresh...');
+    retryCount = 0;
+    updateLeaderboard();
+  }
+
+  function startCountdown() {
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+      if (!lastUpdateTime) return;
+      const remaining = lastUpdateTime + UPDATE_INTERVAL - Date.now();
+      if (remaining <= 0) {
+        document.getElementById('countdown').textContent = '⏳ Đang cập nhật...';
         return;
       }
-      
-      isUpdating = true;
-      const leaderboardDiv = document.getElementById('leaderboard');
-      const refreshBtn = document.getElementById('refreshBtn');
-      
-      leaderboardDiv.classList.add('updating');
-      refreshBtn.disabled = true;
-      refreshBtn.innerHTML = '<span>⏳</span><span>Đang cập nhật...</span>';
-      
-      console.log('🔄 Bắt đầu cập nhật dữ liệu...');
-      
-      let products = await fetchData();
-      
-      // Nếu fetch thất bại, thử retry
-      if (!products) {
-        console.log('⚠️ Fetch thất bại, bắt đầu retry...');
-        products = await retryFetch();
-      }
-      
-      if (products) {
-        console.log('✅ Cập nhật thành công!');
-        renderLeaderboard(products);
-        saveToStorage(products);
-        autoSaveCSV(products);
-        
-        previousData = products;
-        lastUpdateTime = Date.now();
-        lastSuccessfulUpdate = Date.now();
-        startCountdown();
-        document.getElementById('messageContainer').innerHTML = '';
-      } else if (previousData) {
-        console.log('⚠️ Hiển thị dữ liệu cũ');
-        renderLeaderboard(previousData);
-        showMessage('⚠️ Không thể cập nhật, hiển thị dữ liệu cũ', 'warning');
-      } else {
-        console.log('❌ Không có dữ liệu');
-        showMessage('❌ Không thể tải dữ liệu. Vui lòng thử lại sau.', 'error');
-      }
-      
-      leaderboardDiv.classList.remove('updating');
-      refreshBtn.disabled = false;
-      refreshBtn.innerHTML = '<span>🔄</span><span>Cập nhật ngay</span>';
-      isUpdating = false;
+      const m = Math.floor(remaining / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      document.getElementById('countdown').textContent =
+        `⏱️ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }, 1000);
+  }
+
+  function showMessage(msg, type = 'success') {
+    const el = document.getElementById('messageContainer');
+    el.innerHTML = `<div class="message ${type}">${msg}</div>`;
+    setTimeout(() => { el.innerHTML = ''; }, 5000);
+  }
+
+  function updateConnectionStatus(online) {
+    document.getElementById('connectionStatus').innerHTML = online
+      ? '<span class="live-dot green"></span><span class="status-online">REALTIME</span>'
+      : '<span class="live-dot red"></span><span class="status-error">LỖI KẾT NỐI</span>';
+  }
+
+  function updateViewerCount() {
+    document.getElementById('viewerCount').textContent =
+      `👥 ${Math.floor(Math.random() * 50) + 100} đang xem`;
+  }
+
+  function autoSaveCSV(products) {
+    try {
+      const sorted = [...products].sort((a, b) => b.points - a.points);
+      const top1 = sorted[0].points;
+      csvHistory.push({
+        timestamp: Date.now(),
+        data: sorted.map((p, i) => ({
+          rank: i + 1, id: p.id, name: p.name, points: p.points,
+          gap: i > 0 ? sorted[i-1].points - p.points : null,
+          percent: i > 0 ? ((top1 - p.points) / top1 * 100) : 0,
+          avatar: p.avatar
+        }))
+      });
+      csvCount++;
+      saveCSVHistory();
+    } catch(e) {
+      console.error('CSV save error:', e);
     }
-    
-    function manualRefresh() {
-      console.log('🔄 Cập nhật thủ công...');
-      retryCount = 0; // Reset retry count
-      updateLeaderboard();
-    }
-    
-    init();
-  </script>
+  }
+
+  function convertToCSV(products) {
+    const sorted = [...products].sort((a, b) => b.points - a.points);
+    const top1 = sorted[0].points;
+    const ts = new Date().toLocaleString('vi-VN');
+    let csv = '\uFEFF' + 'Hạng,ID,Tên,Điểm,Gap với hạng trước,% so với #1,Avatar URL,Thời gian\n';
+    sorted.forEach((c, i) => {
+      const gap = i === 0 ? '---' : `-${sorted[i-1].points - c.points}`;
+      const pct = i === 0 ? '100%' : `-${((top1 - c.points) / top1 * 100).toFixed(2)}%`;
+      csv += `${i+1},"${c.id}","${c.name}",${c.points},"${gap}","${pct}","${c.avatar}","${ts}"\n`;
+    });
+    return csv;
+  }
+
+  function downloadCSV() {
+    if (!previousData?.length) return showMessage('Chưa có dữ liệu!', 'error');
+    triggerDownload(convertToCSV(previousData), `leaderboard_${Date.now()}.csv`);
+    showMessage('✅ Đã tải CSV!', 'success');
+  }
+
+  function downloadAllHistory() {
+    if (!csvHistory.length) return showMessage('Chưa có lịch sử!', 'error');
+    let csv = '\uFEFF' + 'Thời gian,Hạng,ID,Tên,Điểm,Gap,% so với #1,Avatar\n';
+    csvHistory.forEach(r => {
+      const t = new Date(r.timestamp).toLocaleString('vi-VN');
+      r.data.forEach(c => {
+        const gap = c.gap !== null ? `-${c.gap}` : '---';
+        const pct = c.rank === 1 ? '100%' : `-${c.percent.toFixed(2)}%`;
+        csv += `"${t}",${c.rank},"${c.id}","${c.name}",${c.points},"${gap}","${pct}","${c.avatar}"\n`;
+      });
+    });
+    triggerDownload(csv, `leaderboard_history_${Date.now()}.csv`);
+    showMessage(`✅ Đã tải lịch sử ${csvHistory.length} lần!`, 'success');
+  }
+
+  function triggerDownload(content, filename) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  init();
+</script>
 </body>
 </html>
